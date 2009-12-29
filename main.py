@@ -28,7 +28,7 @@ class Default(webapp.RequestHandler):
             <body>
               <h1>pymarc4gae</h1>
               <p>Paste in some MARC in ISO2709 format and click the button to get back MARCXML.</p>
-              <form action="/show" method="post">
+              <form action="/marcxml" method="get">
                 <div><textarea name="marc" rows="20" cols="120"></textarea></div>
                 <div><input type="submit" value="Create MARCXML"></div>
               </form>
@@ -38,17 +38,11 @@ class Default(webapp.RequestHandler):
           </html>""")
 
 class ShowXml(webapp.RequestHandler):
-    def post(self):
+    def get(self):
         # self.response.out.write(cgi.escape(self.request.get('marc')))
         record = Record(cgi.escape(self.request.get('marc')))			
         self.response.headers["Content-Type"] = "text/xml"
         self.response.out.write(marcxml.record_to_xml(record))
-
-"""            
-class ShowXml(webapp.RequestHandler):
-    def get(self):
-        self.response.out.write("Error")
-"""
 
 class Test(webapp.RequestHandler):
   def get(self):
@@ -69,7 +63,7 @@ class Test(webapp.RequestHandler):
 
 def main():
   application = webapp.WSGIApplication([('/', Default), 
-                                        ('/show', ShowXml), 
+                                        ('/marcxml', ShowXml), 
                                         ('/test', Test)],
                                        debug=True)
   util.run_wsgi_app(application)
