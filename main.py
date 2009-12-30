@@ -16,33 +16,36 @@
 #
 
 import cgi
+import os
+import urllib
 
+from google.appengine.ext.webapp import template
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import util
 from pymarc import Record, Field, marcxml, MARCReader
 
 class Default(webapp.RequestHandler):
     def get(self):
-        self.response.out.write("""
-          <html>
-            <body>
-              <h1>pymarc4gae</h1>
-              <p>Paste in some MARC in ISO2709 format and click the button to get back MARCXML.</p>
-              <form action="/marcxml" method="get">
-                <div><textarea name="marc" rows="20" cols="120"></textarea></div>
-                <div><input type="submit" value="Create MARCXML"></div>
-              </form>
-              <hr />
-              <p>Created by <a href="http://libriotech.no/">Libriotech</a>. Based on <a href="http://github.com/edsu/pymarc">pymarc</a>. Work in progress...</p>
-            </body>
-          </html>""")
+        template_values = {}
+        path = os.path.join(os.path.dirname(__file__), 'tpl/index.tpl')
+        self.response.out.write(template.render(path, template_values))
+
+class Record(webapp.RequestHandler):
+    def get(self):
+        template_values = {
+            'marc': cgi.escape(self.request.get('marc')).replace(" ","+")
+        }
+        path = os.path.join(os.path.dirname(__file__), 'tpl/record.tpl')
+        self.response.out.write(template.render(path, template_values))
 
 class ShowXml(webapp.RequestHandler):
     def get(self):
         # self.response.out.write(cgi.escape(self.request.get('marc')))
-        record = Record(cgi.escape(self.request.get('marc')))			
-        self.response.headers["Content-Type"] = "text/xml"
-        self.response.out.write(marcxml.record_to_xml(record))
+        # record = Record(cgi.escape(self.request.get('marc')))	
+        reader = MARCReader(cgi.escape(self.request.get('marc')))
+        for record in reader: 		
+            self.response.headers["Content-Type"] = "text/xml"
+            self.response.out.write(marcxml.record_to_xml(record))
 
 class Test(webapp.RequestHandler):
   def get(self):
@@ -63,6 +66,7 @@ class Test(webapp.RequestHandler):
 
 def main():
   application = webapp.WSGIApplication([('/', Default), 
+                                        ('/record', Record), 
                                         ('/marcxml', ShowXml), 
                                         ('/test', Test)],
                                        debug=True)
