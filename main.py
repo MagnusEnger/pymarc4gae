@@ -37,6 +37,7 @@ class Default(webapp.RequestHandler):
         path = os.path.join(os.path.dirname(__file__), 'tpl/index.tpl')
         self.response.out.write(template.render(path, template_values))
 
+# Save a record from the user
 class SaveRecord(webapp.RequestHandler):
     def post(self):
         # TODO: Make sure record is valid! 
@@ -52,6 +53,7 @@ class SaveRecord(webapp.RequestHandler):
         path = os.path.join(os.path.dirname(__file__), 'tpl/saverecord.tpl')
         self.response.out.write(template.render(path, template_values))
 
+# Show available options for a record identified by a key
 class Record(webapp.RequestHandler):
     def get(self):
         key = cgi.escape(self.request.get('key'))
@@ -63,6 +65,7 @@ class Record(webapp.RequestHandler):
         path = os.path.join(os.path.dirname(__file__), 'tpl/record.tpl')
         self.response.out.write(template.render(path, template_values))
 
+# Show MARCXML
 class ShowXml(webapp.RequestHandler):
     def get(self):
         key = cgi.escape(self.request.get('key'))
@@ -71,6 +74,7 @@ class ShowXml(webapp.RequestHandler):
         self.response.headers["Content-Type"] = "text/xml"
         self.response.out.write(marcxml.record_to_xml(record))
 
+# Show record in mnemonic format
 class ShowMnem(webapp.RequestHandler):
     def get(self):
         key = cgi.escape(self.request.get('key'))
@@ -79,12 +83,26 @@ class ShowMnem(webapp.RequestHandler):
        	self.response.headers["Content-Type"] = "text/plain"
         self.response.out.write(record)
 
+# Show author
+class Author(webapp.RequestHandler):
+    def get(self):
+        key = cgi.escape(self.request.get('key'))
+        savedrecord = db.get(key)
+        record = pymarc.Record(savedrecord.iso2709)
+        template_values = {
+            'key': key, 
+            'author': record.author()
+        }
+        path = os.path.join(os.path.dirname(__file__), 'tpl/author.tpl')
+        self.response.out.write(template.render(path, template_values))
+
 def main():
   application = webapp.WSGIApplication([('/', Default), 
                                         ('/saverecord', SaveRecord), 
                                         ('/record', Record), 
                                         ('/marcxml', ShowXml), 
-                                        ('/mnem', ShowMnem)],
+                                        ('/mnem', ShowMnem), 
+                                        ('/author', Author)],
                                        debug=True)
   util.run_wsgi_app(application)
 
