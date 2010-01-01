@@ -8,7 +8,7 @@
 <meta http-equiv="content-type" content="text/html; charset=utf-8"/> 
 </head>
 <body>
-<h1>pymarc4gae</h1>
+<h1><a href="/">pymarc4gae</a></h1>
 {% block content %}{% endblock %}
 <hr />
 <p>
