@@ -25,6 +25,7 @@ from google.appengine.ext.webapp import template
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import util
 from google.appengine.ext import db
+from django.utils import simplejson
 from pymarc import Record, Field, marcxml, MARCReader
 
 class SavedRecord(db.Model):
@@ -93,8 +94,11 @@ class Author(webapp.RequestHandler):
             'key': key, 
             'author': record.author()
         }
-        path = os.path.join(os.path.dirname(__file__), 'tpl/author.tpl')
-        self.response.out.write(template.render(path, template_values))
+        if self.request.get('format') == 'json':
+            self.response.out.write(simplejson.dumps(template_values))
+        else:
+            path = os.path.join(os.path.dirname(__file__), 'tpl/author.tpl')
+            self.response.out.write(template.render(path, template_values))
 
 def main():
   application = webapp.WSGIApplication([('/', Default), 
