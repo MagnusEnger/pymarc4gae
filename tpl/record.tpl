@@ -1,8 +1,13 @@
 {% extends "html.tpl" %}
 {% block content %}
+<p>Full record</p>
 <ul>
 <li><a href="/marcxml?key={{ key }}">MARCXML</a></li>
 <li><a href="/mnem?key={{ key }}">Mnemonic format</a></li>
+<li><a href="/iso?key={{ key }}">ISO2709</a></li>
+</ul>
+<p>Bits and pieces</p>
+<ul>
 <li><a href="/author?key={{ key }}">Author</a> <a href="/author?format=json&key={{ key }}">JSON</a></li>
 </ul>
 

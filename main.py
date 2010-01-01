@@ -84,6 +84,14 @@ class ShowMnem(webapp.RequestHandler):
        	self.response.headers["Content-Type"] = "text/plain"
         self.response.out.write(record)
 
+# Show record in ISO2709 format
+class ShowIso(webapp.RequestHandler):
+    def get(self):
+        key = cgi.escape(self.request.get('key'))
+        savedrecord = db.get(key)
+       	self.response.headers["Content-Type"] = "text/plain"
+        self.response.out.write(savedrecord.iso2709)
+
 # Show author
 class Author(webapp.RequestHandler):
     def get(self):
@@ -106,6 +114,7 @@ def main():
                                         ('/record', Record), 
                                         ('/marcxml', ShowXml), 
                                         ('/mnem', ShowMnem), 
+                                        ('/iso', ShowIso), 
                                         ('/author', Author)],
                                        debug=True)
   util.run_wsgi_app(application)
