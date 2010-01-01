@@ -18,11 +18,18 @@
 import cgi
 import os
 import urllib
+import md5
+import pymarc
 
 from google.appengine.ext.webapp import template
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import util
+from google.appengine.ext import db
 from pymarc import Record, Field, marcxml, MARCReader
+
+class SavedRecord(db.Model):
+    iso2709 = db.TextProperty()
+    date = db.DateTimeProperty(auto_now_add=True)
 
 class Default(webapp.RequestHandler):
     def get(self):
@@ -30,45 +37,54 @@ class Default(webapp.RequestHandler):
         path = os.path.join(os.path.dirname(__file__), 'tpl/index.tpl')
         self.response.out.write(template.render(path, template_values))
 
+class SaveRecord(webapp.RequestHandler):
+    def post(self):
+        # TODO: Make sure record is valid! 
+        savedrecord = SavedRecord()
+        marc = cgi.escape(self.request.get('marc'))
+        savedrecord.iso2709 = marc
+        savedrecord.put()
+        # TODO: Redirect to /record ? 
+        # self.redirect('/')
+        template_values = {
+            'key': savedrecord.key()
+        }
+        path = os.path.join(os.path.dirname(__file__), 'tpl/saverecord.tpl')
+        self.response.out.write(template.render(path, template_values))
+
 class Record(webapp.RequestHandler):
     def get(self):
+        key = cgi.escape(self.request.get('key'))
+        savedrecord = db.get(key)
         template_values = {
-            'marc': cgi.escape(self.request.get('marc')).replace(" ","+")
+            'key': key, 
+            'marc': savedrecord.iso2709
         }
         path = os.path.join(os.path.dirname(__file__), 'tpl/record.tpl')
         self.response.out.write(template.render(path, template_values))
 
 class ShowXml(webapp.RequestHandler):
     def get(self):
-        # self.response.out.write(cgi.escape(self.request.get('marc')))
-        # record = Record(cgi.escape(self.request.get('marc')))	
-        reader = MARCReader(cgi.escape(self.request.get('marc')))
-        for record in reader: 		
-            self.response.headers["Content-Type"] = "text/xml"
-            self.response.out.write(marcxml.record_to_xml(record))
+        key = cgi.escape(self.request.get('key'))
+        savedrecord = db.get(key)
+        record = pymarc.Record(savedrecord.iso2709)
+        self.response.headers["Content-Type"] = "text/xml"
+        self.response.out.write(marcxml.record_to_xml(record))
 
-class Test(webapp.RequestHandler):
-  def get(self):
-    record = Record()
-    field = Field(
-        tag = '245',
-        indicators = ['0','1'],
-        subfields = [
-            'a', 'The pragmatic programmer : ',
-            'b', 'from journeyman to master /',
-            'c', 'Andrew Hunt, David Thomas.'
-        ]
-    )
-    record.add_field(field)
-    # self.response.out.write(record.as_marc())
-    self.response.headers["Content-Type"] = "text/xml"
-    self.response.out.write(marcxml.record_to_xml(record))
+class ShowMnem(webapp.RequestHandler):
+    def get(self):
+        key = cgi.escape(self.request.get('key'))
+        savedrecord = db.get(key)
+        record = pymarc.Record(savedrecord.iso2709)
+       	self.response.headers["Content-Type"] = "text/plain"
+        self.response.out.write(record)
 
 def main():
   application = webapp.WSGIApplication([('/', Default), 
+                                        ('/saverecord', SaveRecord), 
                                         ('/record', Record), 
                                         ('/marcxml', ShowXml), 
-                                        ('/test', Test)],
+                                        ('/mnem', ShowMnem)],
                                        debug=True)
   util.run_wsgi_app(application)
 
