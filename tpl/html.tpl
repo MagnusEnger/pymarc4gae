@@ -11,6 +11,11 @@
 <h1>pymarc4gae</h1>
 {% block content %}{% endblock %}
 <hr />
-<p>Created by <a href="http://libriotech.no/">Libriotech</a>. Based on <a href="http://github.com/edsu/pymarc">pymarc</a>. Work in progress...</p>
+<p>
+Created by <a href="http://libriotech.no/">Libriotech</a>. 
+Based on <a href="http://github.com/edsu/pymarc">pymarc</a>. 
+<a href="http://github.com/MagnusEnger/pymarc4gae">Source code</a>. 
+Work in progress...
+</p>
 </body>
 </html>
