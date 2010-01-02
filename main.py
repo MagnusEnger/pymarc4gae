@@ -43,6 +43,7 @@ class SaveRecord(webapp.RequestHandler):
     def post(self):
         # TODO: Make sure record is valid! 
         if self.request.get('action') != '':
+            # If action is set, redirect to /action
             action = cgi.escape(self.request.get('action'))
             arguments = {
                 'marc': self.request.get('marc'), 
@@ -51,6 +52,7 @@ class SaveRecord(webapp.RequestHandler):
             marc_urlencoded = urllib.urlencode(arguments)
             self.redirect('/' + action + '?' + marc_urlencoded)
         else:
+            # action is not set, save the record
             savedrecord = SavedRecord()
             marc = cgi.escape(self.request.get('marc'))
             savedrecord.iso2709 = marc
@@ -78,9 +80,13 @@ class Record(webapp.RequestHandler):
 # Show MARCXML
 class ShowXml(webapp.RequestHandler):
     def get(self):
-        key = cgi.escape(self.request.get('key'))
-        savedrecord = db.get(key)
-        record = pymarc.Record(savedrecord.iso2709)
+        record = ''
+        if self.request.get('marc') != '':
+            record = pymarc.Record(cgi.escape(self.request.get('marc')))
+        else:
+            key = cgi.escape(self.request.get('key'))
+            savedrecord = db.get(key)
+            record = pymarc.Record(savedrecord.iso2709)
         self.response.headers["Content-Type"] = "text/xml"
         self.response.out.write(marcxml.record_to_xml(record))
 
