@@ -19,7 +19,7 @@ import cgi
 import os
 import urllib
 import md5
-import pymarc
+import pymarc, pickle
 
 from google.appengine.ext.webapp import template
 from google.appengine.ext import webapp
@@ -42,17 +42,26 @@ class Default(webapp.RequestHandler):
 class SaveRecord(webapp.RequestHandler):
     def post(self):
         # TODO: Make sure record is valid! 
-        savedrecord = SavedRecord()
-        marc = cgi.escape(self.request.get('marc'))
-        savedrecord.iso2709 = marc
-        savedrecord.put()
-        # TODO: Redirect to /record ? 
-        # self.redirect('/')
-        template_values = {
-            'key': savedrecord.key()
-        }
-        path = os.path.join(os.path.dirname(__file__), 'tpl/saverecord.tpl')
-        self.response.out.write(template.render(path, template_values))
+        if self.request.get('action') != '':
+            action = cgi.escape(self.request.get('action'))
+            arguments = {
+                'marc': self.request.get('marc'), 
+                'format': self.request.get('format')
+            }
+            marc_urlencoded = urllib.urlencode(arguments)
+            self.redirect('/' + action + '?' + marc_urlencoded)
+        else:
+            savedrecord = SavedRecord()
+            marc = cgi.escape(self.request.get('marc'))
+            savedrecord.iso2709 = marc
+            savedrecord.put()
+            # TODO: Redirect to /record ? 
+            # self.redirect('/')
+            template_values = {
+                'key': savedrecord.key()
+            }
+            path = os.path.join(os.path.dirname(__file__), 'tpl/saverecord.tpl')
+            self.response.out.write(template.render(path, template_values))
 
 # Show available options for a record identified by a key
 class Record(webapp.RequestHandler):
@@ -95,15 +104,24 @@ class ShowIso(webapp.RequestHandler):
 # Show author
 class Author(webapp.RequestHandler):
     def get(self):
-        key = cgi.escape(self.request.get('key'))
-        savedrecord = db.get(key)
-        record = pymarc.Record(savedrecord.iso2709)
+        record = ''
+        template_values = {}
+        if self.request.get('marc') != '':
+            record = pymarc.Record(cgi.escape(self.request.get('marc')))
+        else:
+            key = cgi.escape(self.request.get('key'))
+            template_values = {
+                'key': key
+            }
+            savedrecord = db.get(key)
+            record = pymarc.Record(savedrecord.iso2709)
         template_values = {
-            'key': key, 
             'author': record.author()
         }
         if self.request.get('format') == 'json':
             self.response.out.write(simplejson.dumps(template_values))
+        elif self.request.get('format') == 'pickle':
+            self.response.out.write(pickle.dumps(template_values))
         else:
             path = os.path.join(os.path.dirname(__file__), 'tpl/author.tpl')
             self.response.out.write(template.render(path, template_values))

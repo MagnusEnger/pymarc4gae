@@ -4,5 +4,17 @@
 <form action="/saverecord" method="post">
 <div><textarea name="marc" rows="20" cols="120"></textarea></div>
 <div><input type="submit" value="Save MARC and show options"></div>
+<div> - or - </div>
+<div><select name="action">
+<option value="">Select action...</option>
+<option value="author">Author</option>
+</select></div>
+<div><select name="format">
+<option value="">Select format...</option>
+<option value="">HTML</option>
+<option value="json">JSON</option>
+<option value="pickle">pickle</option>
+</select></div>
+<div><input type="submit" value="and perform action without saving"></div>
 </form>
 {% endblock %}
