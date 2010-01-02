@@ -102,29 +102,40 @@ class ShowIso(webapp.RequestHandler):
         self.response.out.write(savedrecord.iso2709)
 
 # Show author
-class Author(webapp.RequestHandler):
+class ShowValues(webapp.RequestHandler):
     def get(self):
         record = ''
-        template_values = {}
+        values = {}
         if self.request.get('marc') != '':
             record = pymarc.Record(cgi.escape(self.request.get('marc')))
         else:
             key = cgi.escape(self.request.get('key'))
-            template_values = {
+            values = {
                 'key': key
             }
             savedrecord = db.get(key)
             record = pymarc.Record(savedrecord.iso2709)
-        template_values = {
-            'author': record.author()
+            
+        values = {
+        	'title': record.title(), 
+        	'uniformtitle': record.uniformtitle(), 
+            'author': record.author(), 
+            'isbn': record.isbn(), 
+            'subjects': record.subjects(), 
+            # 'addedentries': record.addedentries(), 
+            'location': record.location(), 
+            # 'notes': record.notes(), 
+            # 'physicaldescription': record.physicaldescription(), 
+            'publisher': record.publisher(), 
+            'pubyear': record.pubyear()
         }
         if self.request.get('format') == 'json':
-            self.response.out.write(simplejson.dumps(template_values))
+            self.response.out.write(simplejson.dumps(values))
         elif self.request.get('format') == 'pickle':
-            self.response.out.write(pickle.dumps(template_values))
+            self.response.out.write(pickle.dumps(values))
         else:
-            path = os.path.join(os.path.dirname(__file__), 'tpl/author.tpl')
-            self.response.out.write(template.render(path, template_values))
+            path = os.path.join(os.path.dirname(__file__), 'tpl/values.tpl')
+            self.response.out.write(template.render(path, values))
 
 def main():
   application = webapp.WSGIApplication([('/', Default), 
@@ -133,7 +144,7 @@ def main():
                                         ('/marcxml', ShowXml), 
                                         ('/mnem', ShowMnem), 
                                         ('/iso', ShowIso), 
-                                        ('/author', Author)],
+                                        ('/values', ShowValues)],
                                        debug=True)
   util.run_wsgi_app(application)
 
