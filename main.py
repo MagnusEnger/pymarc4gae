@@ -93,9 +93,13 @@ class ShowXml(webapp.RequestHandler):
 # Show record in mnemonic format
 class ShowMnem(webapp.RequestHandler):
     def get(self):
-        key = cgi.escape(self.request.get('key'))
-        savedrecord = db.get(key)
-        record = pymarc.Record(savedrecord.iso2709)
+        record = ''
+        if self.request.get('marc') != '':
+            record = pymarc.Record(cgi.escape(self.request.get('marc')))
+        else:
+            key = cgi.escape(self.request.get('key'))
+            savedrecord = db.get(key)
+            record = pymarc.Record(savedrecord.iso2709)
        	self.response.headers["Content-Type"] = "text/plain"
         self.response.out.write(record)
 
