@@ -9,6 +9,7 @@
 <option value="">Select action...</option>
 <option value="marcxml">MARCXML</option>
 <option value="mnem">Mnemonic</option>
+<option value="iso">ISO2709</option>
 <option value="values">Values</option>
 </select></div>
 <div><select name="format">

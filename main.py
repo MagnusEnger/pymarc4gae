@@ -106,10 +106,15 @@ class ShowMnem(webapp.RequestHandler):
 # Show record in ISO2709 format
 class ShowIso(webapp.RequestHandler):
     def get(self):
-        key = cgi.escape(self.request.get('key'))
-        savedrecord = db.get(key)
+        record = ''
+        if self.request.get('marc') != '':
+            record = cgi.escape(self.request.get('marc'))
+        else:
+            key = cgi.escape(self.request.get('key'))
+            savedrecord = db.get(key)
+            record = savedrecord.iso2709
        	self.response.headers["Content-Type"] = "text/plain"
-        self.response.out.write(savedrecord.iso2709)
+        self.response.out.write(record)
 
 # Show author
 class ShowValues(webapp.RequestHandler):
